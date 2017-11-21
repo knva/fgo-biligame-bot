@@ -1,0 +1,150 @@
+<!doctype html>
+<html>
+<title>配置你的fgo版本</title>
+
+<head>
+    <meta charset="utf-8" />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .next {
+            margin-top: 20px;
+            margin-left: 250px;
+        }
+
+        .versioninfo {
+            margin-left: 25px;
+        }
+
+        input {
+            margin-top: 15px;
+        }
+
+        span {
+            display: inline-block;
+            width: 100px;
+            text-align: left;
+        }
+
+        .userinfo {
+            width: 200px;
+            height: 200px;
+            border-style: solid;
+            border: 1px;
+            border-color: #000000;
+            float: left;
+        }
+    </style>
+</head>
+
+<body>
+    <div class='cont'>
+
+        <form class='versioninfo'>
+            <h4>fgo配置文件修改</h4>
+            {% if version %}
+            <span>版本号:</span>
+            <input name='version' value='{{ version }}'></input>
+            {% endif %}
+            <p/> {% if dateVersion %}
+            <span>日期版本:</span>
+            <input name='dateVersion' value='{{ dateVersion }}'></input>
+            {% endif %}
+            <p/> {% if dataVersion %}
+            <span>数据版本:</span>
+            <input name='dataVersion' value='{{ dataVersion }}'></input>
+            {% endif %}
+            <p/> {% if appVersion %}
+            <span>app版本:</span>
+            <input name='appVersion' value='{{ appVersion }}'></input>
+            {% endif %}
+            <p/>
+        </form>
+        <div class='next'>
+            <button class='config'>修改版本</button>
+        </div>
+
+        <div class='accountarea'>
+        </div>
+
+    </div>
+
+</body>
+<script src='static/jquery-3.2.1.min.js'></script>
+<script>
+
+    var flush = function () {
+        $('.accountarea').empty();
+        $.get('/accountList', function (res) {
+            var resuful = JSON.parse(res);
+            var i = 0;
+            $.each(resuful, function (k, v) {
+                console.log(v);
+                $('.accountarea').append("<div class='userinfo'><form class='" + v['username'] + "'>\
+                    <span>用户名:</span> <input name='username' value='"+ v['username'] + "'><p/>\
+                    <span>用户id:</span> <input name='userid' value='"+ v['uid'] + "'><p/>\
+                    <span>用户token:</span> <input name='usertoken' value='"+ v['accessToken'] + "'><p/></form>\
+                    <button onclick='editUser(\""+ v['username'] + "\")'>修改</button>\
+                    <button onclick='deleteUser(\""+ v['username'] + "\")'>删除</button>\
+                    </div>")
+                i = parseInt(i) + 1;
+            });
+            $('.accountarea').append("<div class='userinfo'> <form class='needadd'\
+                    <span>用户名:</span> <input name='username' value='"+ "" + "'><p/>\
+                    <span>用户id:</span> <input name='userid' value='"+ "" + "'><p/>\
+                    <span>用户token:</span> <input name='usertoken' value='"+ "" + "'><p/></form>\
+                    <button onclick='addUser()'>添加</button>\
+                    </div>")
+
+        });
+    };
+    $('.config').bind('click', function () {
+        var version = $('.versioninfo').serializeArray()
+        $.post("/config", version, function (res) {
+            var resuful = JSON.parse(res);
+            if (resuful['status'] == 1) {
+                $('.next').append('<a>ok!</a>');
+                setTimeout(function () { $('.next a').remove() }, 2000);
+
+            }
+            else {
+                $('.next').append('<a>no ok!</a>');
+                setTimeout(function () { $('.next a').remove() }, 2000);
+            }
+        });
+    });
+    var isOk = function (res) {
+        var resuful = JSON.parse(res);
+        if (resuful['status'] == 1) {
+            $('.next').append('<a>edit ok!</a>');
+            setTimeout(function () { $('.next a').remove() }, 2000);
+        }
+        else if (resuful['status'] == 2) {
+            $('.next').append('<a>add ok!</a>');
+            setTimeout(function () { $('.next a').remove() }, 2000);
+        } else {
+            $('.next').append('<a>no ok!</a>');
+            setTimeout(function () { $('.next a').remove() }, 2000);
+        }
+        flush();
+    };
+    var editUser = function (name) {
+        var userinfo = $('.' + name).serializeArray()
+        $.ajax("/account", { type: 'put', data: version ,success:isOk});
+    };
+    var deleteUser = function (name) {
+        $.ajax('/removeAccount/' + name, { type: 'delete' ,success:isOk});
+    };
+    var addUser = function () {
+        var userinfo = $('.needadd').serializeArray()
+        $.ajax("/addaccount", { type: 'post', data: userinfo ,success:isOk});
+    };
+ 
+    flush();
+</script>
+
+</html>
