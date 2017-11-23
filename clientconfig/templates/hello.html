@@ -134,7 +134,7 @@
     };
     var editUser = function (name) {
         var userinfo = $('.' + name).serializeArray()
-        $.ajax("/account", { type: 'put', data: version ,success:isOk});
+        $.ajax("/account", { type: 'put', data: userinfo ,success:isOk});
     };
     var deleteUser = function (name) {
         $.ajax('/removeAccount/' + name, { type: 'delete' ,success:isOk});
